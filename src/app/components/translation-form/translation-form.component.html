@@ -1,0 +1,39 @@
+<div class="translation-form" *ngIf="hasTranslations()">
+  <h2>Missing Translations</h2>
+  
+  <div class="translations-container">
+    <div class="translation-item" *ngFor="let item of missingTranslations">
+      <div class="translation-header">
+        <span class="key">{{ item.key }}</span>
+        <span class="language">{{ item.language }}</span>
+      </div>
+      
+      <div class="existing-translations" *ngIf="Object.keys(item.existingTranslations).length > 0">
+        <h4>Existing translations:</h4>
+        <div class="translation" *ngFor="let lang of Object.keys(item.existingTranslations)">
+          <span class="lang-code">{{ lang }}:</span>
+          <span class="translation-text">{{ item.existingTranslations[lang] }}</span>
+        </div>
+      </div>
+
+      <div class="translation-input">
+        <input
+          type="text"
+          [placeholder]="'Enter ' + item.language + ' translation'"
+          [(ngModel)]="newTranslations[item.key + '_' + item.language]"
+          (blur)="updateTranslation(item.key, item.language, newTranslations[item.key + '_' + item.language])"
+        />
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="download-button" (click)="downloadTranslations()">
+      Download Updated Files
+    </button>
+  </div>
+</div>
+
+<div class="no-translations" *ngIf="!hasTranslations()">
+  <p>No missing translations found. Upload translation files to begin.</p>
+</div>

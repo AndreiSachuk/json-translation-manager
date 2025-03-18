@@ -1,0 +1,116 @@
+.translation-form {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+
+  h2 {
+    color: #333;
+    margin-bottom: 20px;
+  }
+}
+
+.translations-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.translation-item {
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  .translation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+
+    .key {
+      font-weight: bold;
+      color: #2196f3;
+    }
+
+    .language {
+      background-color: #e3f2fd;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.9em;
+      color: #1976d2;
+    }
+  }
+
+  .existing-translations {
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 4px;
+
+    h4 {
+      margin: 0 0 8px 0;
+      color: #666;
+      font-size: 0.9em;
+    }
+
+    .translation {
+      margin: 5px 0;
+      font-size: 0.9em;
+
+      .lang-code {
+        color: #666;
+        margin-right: 8px;
+        font-weight: bold;
+      }
+
+      .translation-text {
+        color: #333;
+      }
+    }
+  }
+
+  .translation-input {
+    margin-top: 10px;
+
+    input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1em;
+
+      &:focus {
+        outline: none;
+        border-color: #2196f3;
+        box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+      }
+    }
+  }
+}
+
+.actions {
+  margin-top: 20px;
+  text-align: center;
+
+  .download-button {
+    background-color: #4caf50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+      background-color: #388e3c;
+    }
+  }
+}
+
+.no-translations {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 1.1em;
+}

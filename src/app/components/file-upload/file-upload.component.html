@@ -1,0 +1,29 @@
+<div
+  class="upload-container"
+  [class.dragging]="isDragging"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDrop($event)">
+  <div class="upload-content">
+    <i class="upload-icon">📁</i>
+    <p>Drag and drop your translation files here</p>
+    <p class="or">or</p>
+    <input
+      type="file"
+      multiple
+      accept=".json"
+      (change)="onFileSelected($event)"
+      #fileInput
+      class="file-input"
+    />
+    <button (click)="fileInput.click()" class="upload-button">
+      Choose Files
+    </button>
+  </div>
+  <div class="file-list" *ngIf="files.length > 0">
+    <h3>Selected Files:</h3>
+    <ul>
+      <li *ngFor="let file of files">{{ file.name }}</li>
+    </ul>
+  </div>
+</div>
