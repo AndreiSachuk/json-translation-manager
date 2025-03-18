@@ -1,13 +1,18 @@
-<div
-  class="upload-container"
-  [class.dragging]="isDragging"
-  (dragover)="onDragOver($event)"
-  (dragleave)="onDragLeave($event)"
-  (drop)="onDrop($event)">
-  <div class="upload-content">
-    <i class="upload-icon">📁</i>
-    <p>Drag and drop your translation files here</p>
-    <p class="or">or</p>
+<div class="upload-container" [class.has-files]="files.length > 0" [class.processing]="isProcessing">
+  <div class="upload-content" *ngIf="!files.length"
+    [class.dragging]="isDragging"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)">
+    <div class="upload-icon-wrapper">
+      <i class="upload-icon" [class.bounce]="!files.length">📁</i>
+    </div>
+
+    <div class="upload-text">
+      <p class="primary-text">Drag and drop translation JSON files</p>
+      <p class="secondary-text">or choose them from your computer</p>
+    </div>
+
     <input
       type="file"
       multiple
@@ -16,14 +21,34 @@
       #fileInput
       class="file-input"
     />
-    <button (click)="fileInput.click()" class="upload-button">
-      Choose Files
+
+    <button
+      (click)="openFileInput()"
+      class="upload-button">
+      <span class="button-text">Choose Files</span>
     </button>
   </div>
-  <div class="file-list" *ngIf="files.length > 0">
-    <h3>Selected Files:</h3>
+
+  <div class="processing-indicator" *ngIf="isProcessing">
+    <div class="spinner"></div>
+    <span>Processing files...</span>
+  </div>
+
+  <div class="file-list" *ngIf="files.length > 0 && !isProcessing">
+    <div class="file-list-header">
+      <h3>Selected Files</h3>
+      <div class="file-list-actions">
+        <span class="file-count">{{ files.length }} file(s)</span>
+      </div>
+    </div>
     <ul>
-      <li *ngFor="let file of files">{{ file.name }}</li>
+      <li *ngFor="let file of files; let i = index" class="file-item">
+        <div class="file-info">
+          <span class="file-icon">📄</span>
+          <span class="file-name">{{ file.name }}</span>
+          <span class="file-size">{{ formatFileSize(file.size) }}</span>
+        </div>
+      </li>
     </ul>
   </div>
 </div>

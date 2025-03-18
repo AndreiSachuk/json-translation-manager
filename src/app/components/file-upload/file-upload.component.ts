@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslationService } from '../../services/translation.service';
 
@@ -10,7 +10,10 @@ import { TranslationService } from '../../services/translation.service';
   standalone: true
 })
 export class FileUploadComponent {
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+
   isDragging = false;
+  isProcessing = false;
   files: File[] = [];
 
   constructor(private translationService: TranslationService) {}
@@ -43,14 +46,37 @@ export class FileUploadComponent {
     }
   }
 
-  private handleFiles(files: File[]): void {
+  removeFile(index: number): void {
+    this.files = this.files.filter((_, i) => i !== index);
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+  }
+
+  openFileInput(): void {
+    this.fileInput?.nativeElement?.click();
+  }
+
+  private async handleFiles(files: File[]): Promise<void> {
     const jsonFiles = files.filter(file => file.name.endsWith('.json'));
     if (jsonFiles.length === 0) {
       alert('Please select JSON files only');
       return;
     }
 
-    this.files = jsonFiles;
-    this.translationService.processFiles(jsonFiles);
+    try {
+      this.isProcessing = true;
+      this.files = jsonFiles;
+      await this.translationService.processFiles(jsonFiles);
+    } catch (error) {
+      console.error('Error processing files:', error);
+    } finally {
+      this.isProcessing = false;
+    }
   }
 }

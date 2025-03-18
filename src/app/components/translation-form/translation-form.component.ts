@@ -15,6 +15,9 @@ export class TranslationFormComponent implements OnInit {
   protected readonly Object = Object;
   missingTranslations: MissingTranslation[] = [];
   newTranslations: { [key: string]: string } = {};
+  translationHistory: { [key: string]: string[] } = {};
+  changedCount = 0;
+  hasChanges = false;
 
   constructor(private translationService: TranslationService) {}
 
@@ -23,35 +26,75 @@ export class TranslationFormComponent implements OnInit {
       this.missingTranslations = translations;
       this.initializeNewTranslations();
     });
+
+    this.translationService.getHasChanges().subscribe(hasChanges => {
+      this.hasChanges = hasChanges;
+    });
+
+    setInterval(() => {
+      this.changedCount = this.translationService.getChangedTranslationsCount();
+    }, 500);
   }
 
   private initializeNewTranslations(): void {
-    this.missingTranslations.forEach(item => {
+    this.missingTranslations.sort((a,b) => a.language.localeCompare(b.language)).forEach(item => {
       this.newTranslations[`${item.key}_${item.language}`] = '';
     });
   }
 
   updateTranslation(key: string, language: string, value: string): void {
+    if (!value?.trim()) return;
+
+    const historyKey = `${key}_${language}`;
+    if (!this.translationHistory[historyKey]) {
+      this.translationHistory[historyKey] = [];
+    }
+
+    // Add to history only if it's different from the last entry
+    const lastEntry = this.translationHistory[historyKey][0];
+    if (value !== lastEntry) {
+      this.translationHistory[historyKey].unshift(value);
+      // Keep only last 5 translations in history
+      if (this.translationHistory[historyKey].length > 5) {
+        this.translationHistory[historyKey].pop();
+      }
+    }
+
     this.translationService.updateTranslation(key, language, value);
   }
 
-  downloadTranslations(): void {
-    const files = this.translationService.generateUpdatedFiles();
-    
-    Object.entries(files).forEach(([filename, content]) => {
-      const blob = new Blob([content], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    });
+  restoreTranslation(key: string, language: string, value: string): void {
+    this.newTranslations[`${key}_${language}`] = value;
+    this.updateTranslation(key, language, value);
+  }
+
+  async downloadTranslations(): Promise<void> {
+    const zipBlob = await this.translationService.generateZipFile();
+    const url = URL.createObjectURL(zipBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'translations.zip';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
   }
 
   hasTranslations(): boolean {
     return this.missingTranslations.length > 0;
+  }
+
+
+  getChangedTranslations(): { key: string; language: string; oldValue: string; newValue: string; }[] {
+    return this.translationService.getTranslationChanges();
+  }
+
+  undoChange(change: { key: string; language: string; oldValue: string; newValue: string }): void {
+    this.translationService.undoTranslation(change.key, change.language);
+  }
+
+  getKeyParts(key: string): string[] {
+    return key.split('.');
   }
 }

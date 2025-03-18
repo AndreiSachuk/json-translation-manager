@@ -1,0 +1,9 @@
+{
+    "ONE":"Один",
+    "STRUCTURE": {
+        "TREE_LEVEL_1": "Один",
+        "TWO": {
+            "TREE_LEVEL_2": "Один"
+        }
+    }
+}

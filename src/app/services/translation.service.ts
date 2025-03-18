@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { TranslationFile, MissingTranslation } from '../models/translation.interface';
 import { BehaviorSubject, Observable } from 'rxjs';
+import JSZip from 'jszip';
 
 interface ValidationError {
   type: 'structure' | 'duplicate' | 'case';
@@ -16,12 +17,11 @@ export class TranslationService {
   private translationFiles = new BehaviorSubject<TranslationFile[]>([]);
   private missingTranslations = new BehaviorSubject<MissingTranslation[]>([]);
   private validationErrors = new BehaviorSubject<ValidationError[]>([]);
+  private hasChanges = new BehaviorSubject<boolean>(false);
+  private changedTranslations = new Set<string>();
+  private translationChanges = new Map<string, { key: string; language: string; oldValue: string; newValue: string; }>();
 
   constructor() {}
-
-  getTranslationFiles(): Observable<TranslationFile[]> {
-    return this.translationFiles.asObservable();
-  }
 
   getMissingTranslations(): Observable<MissingTranslation[]> {
     return this.missingTranslations.asObservable();
@@ -30,13 +30,15 @@ export class TranslationService {
   async processFiles(files: File[]): Promise<void> {
     const translations: TranslationFile[] = [];
     const errors: ValidationError[] = [];
-    
+    this.changedTranslations.clear();
+    this.hasChanges.next(false);
+
     for (const file of files) {
       try {
         const content = await this.readFileContent(file);
         const language = file.name.split('.')[0];
         const parsedContent = JSON.parse(content);
-        
+
         // Validate JSON structure
         if (!this.isValidStructure(parsedContent)) {
           errors.push({
@@ -66,10 +68,13 @@ export class TranslationService {
       const caseErrors = this.validateCaseSensitivity(translations);
       errors.push(...caseErrors);
 
-      this.translationFiles.next(translations);
-      this.analyzeMissingTranslations(translations);
+      // Sort translations by language
+      const sortedTranslations = translations.sort((a, b) => a.language.localeCompare(b.language));
+
+      this.translationFiles.next(sortedTranslations);
+      this.analyzeMissingTranslations(sortedTranslations);
     }
-    
+
     this.validationErrors.next(errors);
   }
 
@@ -84,6 +89,36 @@ export class TranslationService {
 
   getValidationErrors(): Observable<ValidationError[]> {
     return this.validationErrors.asObservable();
+  }
+
+  getHasChanges(): Observable<boolean> {
+    return this.hasChanges.asObservable();
+  }
+
+  getChangedTranslationsCount(): number {
+    return this.changedTranslations.size;
+  }
+
+  clearChanges(): void {
+    this.changedTranslations.clear();
+    this.translationChanges.clear();
+    this.hasChanges.next(false);
+  }
+
+  getTranslationChanges(): { key: string; language: string; oldValue: string; newValue: string; }[] {
+    return Array.from(this.translationChanges.values());
+  }
+
+  undoTranslation(key: string, language: string): void {
+    const historyKey = `${key}_${language}`;
+    const change = this.translationChanges.get(historyKey);
+
+    if (change) {
+      this.updateTranslation(key, language, change.oldValue);
+      this.changedTranslations.delete(historyKey);
+      this.translationChanges.delete(historyKey);
+      this.hasChanges.next(this.changedTranslations.size > 0);
+    }
   }
 
   private isValidStructure(obj: any, path: string = ''): boolean {
@@ -101,18 +136,41 @@ export class TranslationService {
 
   private flattenObject(obj: any, prefix: string = ''): { [key: string]: string } {
     const flattened: { [key: string]: string } = {};
-    
+
     for (const [key, value] of Object.entries(obj)) {
       const newKey = prefix ? `${prefix}.${key}` : key;
-      
+
       if (typeof value === 'object' && value !== null) {
         Object.assign(flattened, this.flattenObject(value, newKey));
       } else {
         flattened[newKey] = value as string;
       }
     }
-    
+
     return flattened;
+  }
+
+  private unflattenObject(obj: { [key: string]: string | undefined }): any {
+    const result: any = {};
+
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        const parts = key.split('.');
+        let current = result;
+
+        for (let i = 0; i < parts.length; i++) {
+          const part = parts[i];
+          if (i === parts.length - 1) {
+            current[part] = value;
+          } else {
+            current[part] = current[part] || {};
+            current = current[part];
+          }
+        }
+      }
+    }
+
+    return result;
   }
 
   private validateCaseSensitivity(files: TranslationFile[]): ValidationError[] {
@@ -171,14 +229,34 @@ export class TranslationService {
     });
 
     this.missingTranslations.next(missing);
+    this.hasChanges.next(this.changedTranslations.size > 0);
   }
 
   updateTranslation(key: string, language: string, value: string): void {
     const files = this.translationFiles.value;
     const fileIndex = files.findIndex(f => f.language === language);
-    
+
     if (fileIndex !== -1) {
-      files[fileIndex].content[key] = value;
+      const historyKey = `${key}_${language}`;
+      const oldValue = files[fileIndex].content[key];
+      const trimmedValue = value?.trim() || '';
+
+      // Only mark as changed if the value is different
+      if (oldValue !== trimmedValue) {
+        // If we're setting an empty value and there was no old value, don't track it
+        if (!(trimmedValue === '' && !oldValue)) {
+          this.changedTranslations.add(historyKey);
+          this.translationChanges.set(historyKey, {
+            key,
+            language,
+            oldValue: oldValue || '',
+            newValue: trimmedValue
+          });
+          this.hasChanges.next(this.changedTranslations.size > 0);
+        }
+      }
+
+      files[fileIndex].content[key] = trimmedValue || undefined;
       this.translationFiles.next([...files]);
       this.analyzeMissingTranslations(files);
     }
@@ -189,9 +267,29 @@ export class TranslationService {
     const result: { [filename: string]: string } = {};
 
     files.forEach(file => {
-      result[`${file.language}.json`] = JSON.stringify(file.content, null, 2);
+      // Filter out undefined values before unflattening
+      const definedContent: { [key: string]: string } = {};
+      for (const [key, value] of Object.entries(file.content)) {
+        if (value !== undefined) {
+          definedContent[key] = value;
+        }
+      }
+
+      const unflattened = this.unflattenObject(definedContent);
+      result[`${file.language}.json`] = JSON.stringify(unflattened, null, 2);
     });
 
     return result;
+  }
+
+  async generateZipFile(): Promise<Blob> {
+    const zip = new JSZip();
+    const files = this.generateUpdatedFiles();
+
+    for (const [filename, content] of Object.entries(files)) {
+      zip.file(filename, content);
+    }
+
+    return await zip.generateAsync({ type: 'blob' });
   }
 }

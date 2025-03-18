@@ -1,39 +1,98 @@
 <div class="translation-form" *ngIf="hasTranslations()">
   <h2>Missing Translations</h2>
-  
+
   <div class="translations-container">
     <div class="translation-item" *ngFor="let item of missingTranslations">
       <div class="translation-header">
-        <span class="key">{{ item.key }}</span>
-        <span class="language">{{ item.language }}</span>
+        <div class="key">
+          <span class="key-part" *ngFor="let part of getKeyParts(item.key); let last = last">
+            {{ part }}<span class="key-separator" *ngIf="!last">.</span>
+          </span>
+        </div>
+        <span class="language">[{{ item.language }}]</span>
       </div>
-      
+
       <div class="existing-translations" *ngIf="Object.keys(item.existingTranslations).length > 0">
         <h4>Existing translations:</h4>
         <div class="translation" *ngFor="let lang of Object.keys(item.existingTranslations)">
-          <span class="lang-code">{{ lang }}:</span>
-          <span class="translation-text">{{ item.existingTranslations[lang] }}</span>
+          <span class="lang-code">[{{ lang }}]</span>
+          <div class="translation-text">
+            <span class="value">{{ item.existingTranslations[lang] }}</span>
+          </div>
         </div>
       </div>
 
       <div class="translation-input">
-        <input
-          type="text"
-          [placeholder]="'Enter ' + item.language + ' translation'"
-          [(ngModel)]="newTranslations[item.key + '_' + item.language]"
-          (blur)="updateTranslation(item.key, item.language, newTranslations[item.key + '_' + item.language])"
-        />
+        <div class="input-group">
+          <input
+            type="text"
+            [placeholder]="'Enter ' + item.language + ' translation'"
+            [(ngModel)]="newTranslations[item.key + '_' + item.language]"
+            (keyup.enter)="updateTranslation(item.key, item.language, newTranslations[item.key + '_' + item.language])"
+            [class.has-value]="newTranslations[item.key + '_' + item.language]"
+          />
+          <button
+            class="save-btn"
+            *ngIf="newTranslations[item.key + '_' + item.language]"
+            (click)="updateTranslation(item.key, item.language, newTranslations[item.key + '_' + item.language])"
+            title="Save translation"
+          >
+            ✓
+          </button>
+        </div>
+        <div class="translation-history" *ngIf="translationHistory[item.key + '_' + item.language]?.length">
+          <div class="history-title">История переводов:</div>
+          <div class="history-items">
+            <div class="history-item" *ngFor="let history of translationHistory[item.key + '_' + item.language]; let i = index">
+              <span class="history-text">{{ history }}</span>
+              <button
+                class="restore-btn"
+                (click)="restoreTranslation(item.key, item.language, history)"
+                title="Восстановить этот вариант"
+              >
+                ↺ Восстановить
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="translation-status" *ngIf="hasChanges">
+  <h2>Translation Changes Summary</h2>
+
+  <div class="changes-list" *ngIf="getChangedTranslations().length > 0">
+    <h3>Changed Translations</h3>
+    <div class="change-item" *ngFor="let change of getChangedTranslations()">
+      <div class="change-key">
+        <span class="key-part" *ngFor="let part of getKeyParts(change.key); let last = last">
+          {{ part }}<span class="key-separator" *ngIf="!last">.</span>
+        </span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="new-value">
+        {{ change.newValue }}
+      </div>
+      <div class="language">[{{ change.language }}]</div>
+      <button class="undo-button" (click)="undoChange(change)" title="Отменить изменение">
+        ↺
+      </button>
     </div>
   </div>
 
   <div class="actions">
-    <button class="download-button" (click)="downloadTranslations()">
-      Download Updated Files
+    <button
+      class="download-button"
+      (click)="downloadTranslations()"
+      title="Save new files"
+    >
+      Save new files
     </button>
   </div>
 </div>
 
-<div class="no-translations" *ngIf="!hasTranslations()">
+<div class="no-translations" *ngIf="!hasTranslations() && !hasChanges">
   <p>No missing translations found. Upload translation files to begin.</p>
 </div>
