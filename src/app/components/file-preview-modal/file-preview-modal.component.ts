@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -18,6 +18,7 @@ export class FilePreviewModalComponent {
     return JSON.stringify(this.content, null, 2);
   }
 
+  @HostListener('document:keydown.escape')
   close(): void {
     this.show = false;
     this.showChange.emit(false);

@@ -61,6 +61,13 @@ export class TranslationFormComponent implements OnInit {
     }
 
     this.translationService.updateTranslation(key, language, value);
+    setTimeout(() => {
+      const inputs = document.getElementsByTagName('input')
+      if (inputs.length) {
+        inputs[0].focus();
+      }
+    })
+
   }
 
   restoreTranslation(key: string, language: string, value: string): void {

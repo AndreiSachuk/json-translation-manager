@@ -27,7 +27,7 @@
 .translation-item {
   background: rgba(248, 249, 250, 0.5);
   border-radius: var(--border-radius);
-  padding: 1.5rem;
+  padding: 0.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 
@@ -40,7 +40,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
 
     .key {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;

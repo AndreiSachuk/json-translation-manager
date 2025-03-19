@@ -3,16 +3,15 @@
 
   <div class="translations-container">
     <div class="translation-item" *ngFor="let item of missingTranslations">
-      <div class="translation-header">
-        <div class="key">
-          <span class="key-part" *ngFor="let part of getKeyParts(item.key); let last = last">
-            {{ part }}<span class="key-separator" *ngIf="!last">.</span>
-          </span>
-        </div>
-        <span class="language">[{{ item.language }}]</span>
-      </div>
-
       <div class="existing-translations" *ngIf="Object.keys(item.existingTranslations).length > 0">
+        <div class="translation-header">
+          <div class="key">
+          <span class="key-part" >
+           {{item.key}}
+          </span>
+          </div>
+          <span class="language">[{{ item.language }}]</span>
+        </div>
         <h4>Existing translations:</h4>
         <div class="translation" *ngFor="let lang of Object.keys(item.existingTranslations)">
           <span class="lang-code">[{{ lang }}]</span>
