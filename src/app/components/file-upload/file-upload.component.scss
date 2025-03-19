@@ -107,31 +107,32 @@
 }
 
 .file-list {
-  padding: var(--spacing-md);
+  padding: 8px;
 
   .file-list-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--spacing-md);
+    margin-bottom: 8px;
+    padding: 0 4px;
 
     h3 {
-      font-size: 1.1rem;
-      color: var(--text-color);
+      font-size: 0.9rem;
+      color: #666;
       font-weight: 500;
     }
 
     .file-list-actions {
       display: flex;
       align-items: center;
-      gap: var(--spacing-sm);
+      gap: 8px;
 
       .file-count {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         color: #666;
-        padding: 0.25rem 0.5rem;
+        padding: 2px 8px;
         background: #f1f3f5;
-        border-radius: 12px;
+        border-radius: 8px;
       }
 
       .add-more-button {
@@ -164,29 +165,50 @@
     padding: 0;
     margin: 0;
     display: grid;
-    gap: var(--spacing-sm);
+    gap: 4px;
   }
 
   .file-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--spacing-sm) var(--spacing-md);
+    padding: 6px 8px;
     background: #f8f9fa;
-    border-radius: var(--border-radius);
-    transition: all 0.2s ease;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    border: 1px solid transparent;
 
     &:hover {
       background: #f1f3f5;
+      border-color: #e9ecef;
+    }
+
+    &:active {
+      background: #e9ecef;
     }
 
     .file-info {
       display: flex;
       align-items: center;
-      gap: var(--spacing-sm);
+      gap: 6px;
+      width: 100%;
 
       .file-icon {
-        color: var(--primary-color);
+        color: #666;
+        font-size: 0.9rem;
+      }
+
+      .file-name {
+        font-size: 0.85rem;
+        color: #333;
+        flex: 1;
+      }
+
+      .file-size {
+        font-size: 0.8rem;
+        color: #666;
+        margin-left: 8px;
       }
 
       .file-name {

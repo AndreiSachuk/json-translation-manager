@@ -23,11 +23,18 @@ export class TranslationService {
 
   constructor() {}
 
+  getTranslationFiles(): Observable<TranslationFile[]> {
+    return this.translationFiles.asObservable();
+  }
+
+
+
   getMissingTranslations(): Observable<MissingTranslation[]> {
     return this.missingTranslations.asObservable();
   }
 
   async processFiles(files: File[]): Promise<void> {
+    console.log('Processing files:', files);
     const translations: TranslationFile[] = [];
     const errors: ValidationError[] = [];
     this.changedTranslations.clear();
@@ -35,8 +42,10 @@ export class TranslationService {
 
     for (const file of files) {
       try {
+        console.log('Processing file:', file.name);
         const content = await this.readFileContent(file);
         const language = file.name.split('.')[0];
+        console.log('File content:', content);
         const parsedContent = JSON.parse(content);
 
         // Validate JSON structure
@@ -49,9 +58,11 @@ export class TranslationService {
           continue;
         }
 
+        const flattenedContent = this.flattenObject(parsedContent);
+        console.log('Flattened content:', flattenedContent);
         translations.push({
           language,
-          content: this.flattenObject(parsedContent)
+          content: flattenedContent
         });
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -71,6 +82,7 @@ export class TranslationService {
       // Sort translations by language
       const sortedTranslations = translations.sort((a, b) => a.language.localeCompare(b.language));
 
+      console.log('Setting translation files:', sortedTranslations);
       this.translationFiles.next(sortedTranslations);
       this.analyzeMissingTranslations(sortedTranslations);
     }
@@ -279,6 +291,27 @@ export class TranslationService {
       result[`${file.language}.json`] = JSON.stringify(unflattened, null, 2);
     });
 
+    return result;
+  }
+
+  getFilePreview(language: string): any {
+    console.log('Getting preview for language:', language);
+    console.log('Current translation files:', this.translationFiles.value);
+    
+    const file = this.translationFiles.value.find(f => f.language === language);
+    console.log('Found file:', file);
+    
+    if (!file) return null;
+    
+    const definedContent: { [key: string]: string } = {};
+    for (const [key, value] of Object.entries(file.content)) {
+      if (value !== undefined) {
+        definedContent[key] = value;
+      }
+    }
+    
+    const result = this.unflattenObject(definedContent);
+    console.log('Preview result:', result);
     return result;
   }
 

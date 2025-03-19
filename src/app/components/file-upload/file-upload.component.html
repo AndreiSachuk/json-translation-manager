@@ -42,7 +42,7 @@
       </div>
     </div>
     <ul>
-      <li *ngFor="let file of files; let i = index" class="file-item">
+      <li *ngFor="let file of files; let i = index" class="file-item" (click)="showFilePreview(file)">
         <div class="file-info">
           <span class="file-icon">📄</span>
           <span class="file-name">{{ file.name }}</span>
@@ -52,3 +52,10 @@
     </ul>
   </div>
 </div>
+
+<app-file-preview-modal
+  [show]="showPreview"
+  [fileName]="selectedFile || ''"
+  [content]="previewContent"
+  (showChange)="showPreview = $event">
+</app-file-preview-modal>

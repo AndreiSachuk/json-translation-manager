@@ -1,12 +1,13 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslationService } from '../../services/translation.service';
+import { FilePreviewModalComponent } from '../file-preview-modal/file-preview-modal.component';
 
 @Component({
   selector: 'app-file-upload',
   templateUrl: './file-upload.component.html',
   styleUrl: './file-upload.component.scss',
-  imports: [CommonModule],
+  imports: [CommonModule, FilePreviewModalComponent],
   standalone: true
 })
 export class FileUploadComponent {
@@ -15,8 +16,16 @@ export class FileUploadComponent {
   isDragging = false;
   isProcessing = false;
   files: File[] = [];
+  showPreview = false;
+  selectedFile: string | null = null;
+  previewContent: any = null;
 
-  constructor(private translationService: TranslationService) {}
+  constructor(private translationService: TranslationService) {
+    this.translationService.getTranslationFiles().subscribe(() => {
+      // Force change detection when files are updated
+      this.isProcessing = false;
+    });
+  }
 
   onDragOver(event: DragEvent): void {
     event.preventDefault();
@@ -48,6 +57,24 @@ export class FileUploadComponent {
 
   removeFile(index: number): void {
     this.files = this.files.filter((_, i) => i !== index);
+  }
+
+  showFilePreview(file: File): void {
+    const language = file.name.split('.')[0];
+    this.selectedFile = file.name;
+    const preview = this.translationService.getFilePreview(language);
+    
+    // Always show the modal, even if preview is null
+    this.previewContent = preview || {};
+    this.showPreview = true;
+    
+    // Log for debugging
+    console.log('File preview:', {
+      language,
+      fileName: this.selectedFile,
+      preview: this.previewContent,
+      showPreview: this.showPreview
+    });
   }
 
   formatFileSize(bytes: number): string {

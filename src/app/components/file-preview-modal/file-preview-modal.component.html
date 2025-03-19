@@ -1,0 +1,14 @@
+<div class="modal-overlay" [class.show]="show" (click)="close()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ fileName }}</h2>
+      <button class="close-button" (click)="close()" type="button">×</button>
+    </div>
+    <div class="modal-body">
+      <pre *ngIf="content"><code>{{ formattedContent() }}</code></pre>
+      <div *ngIf="!content" class="empty-state">
+        No content available
+      </div>
+    </div>
+  </div>
+</div>
