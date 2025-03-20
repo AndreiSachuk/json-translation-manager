@@ -2,6 +2,10 @@
 
 Translation Manager - это современное веб-приложение на Angular для эффективного управления переводами в многоязычных проектах. Приложение позволяет легко загружать, анализировать и управлять JSON-файлами переводов.
 
+🌐 **Веб-приложение:** [https://andreisachuk.github.io/json-translation-manager/](https://andreisachuk.github.io/json-translation-manager/)
+
+📦 **GitHub репозиторий:** [https://github.com/AndreiSachuk/json-translation-manager/](https://github.com/AndreiSachuk/json-translation-manager/)
+
 ## Основные возможности
 
 - 📁 Загрузка JSON-файлов переводов через drag-and-drop интерфейс
@@ -15,7 +19,7 @@ Translation Manager - это современное веб-приложение 
 
 ```bash
 # Клонируйте репозиторий
-git clone <repository-url>
+git clone https://github.com/AndreiSachuk/json-translation-manager.git
 
 # Перейдите в директорию проекта
 cd translation-manager
