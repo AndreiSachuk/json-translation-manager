@@ -2,12 +2,14 @@
   "name": "translation-manager",
   "version": "1.0.0",
   "description": "Angular application for managing translation files",
+  "homepage": "https://AndreiSachuk.github.io/json-translation-manager/",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "build:prod": "ng build --configuration production --base-href=/json-translation-manager/"
   },
   "private": true,
   "dependencies": {
